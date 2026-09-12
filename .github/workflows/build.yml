@@ -1,0 +1,27 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build release executable
+        shell: powershell
+        run: .\scripts\build.ps1
+      - name: Package release archive
+        shell: powershell
+        run: .\scripts\package-release.ps1
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CodexQuotaOrb-windows-x64
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error

@@ -1,0 +1,35 @@
+#include <windows.h>
+#pragma code_page(65001)
+
+1 VERSIONINFO
+FILEVERSION     0,1,0,0
+PRODUCTVERSION  0,1,0,0
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+FILEFLAGS       VS_FF_DEBUG
+#else
+FILEFLAGS       0
+#endif
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404B0"
+        BEGIN
+            VALUE "CompanyName",      "CodexQuotaOrb Contributors\0"
+            VALUE "FileDescription",  "Codex 周额度悬浮球\0"
+            VALUE "FileVersion",      "0.1.0\0"
+            VALUE "InternalName",     "CodexQuotaOrb\0"
+            VALUE "LegalCopyright",   "MIT License\0"
+            VALUE "OriginalFilename", "CodexQuotaOrb.exe\0"
+            VALUE "ProductName",      "Codex Quota Orb\0"
+            VALUE "ProductVersion",   "0.1.0\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0804, 1200
+    END
+END
