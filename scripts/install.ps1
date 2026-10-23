@@ -12,13 +12,10 @@ if (-not (Test-Path -LiteralPath $source)) {
 $installRoot = Join-Path $env:LOCALAPPDATA 'CodexQuotaOrb'
 $destination = Join-Path $installRoot 'CodexQuotaOrb.exe'
 $runSubKey = 'Software\Microsoft\Windows\CurrentVersion\Run'
-$settingsSubKey = 'Software\CodexQuotaOrb'
 $runRegistry = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($runSubKey, $true)
 if (-not $runRegistry) {
     throw 'The current-user Run registry key could not be opened for writing.'
 }
-$firstInstall = -not (Test-Path -LiteralPath $destination) -or $null -eq $runRegistry.GetValue('CodexQuotaOrb', $null)
-
 $running = @(Get-Process -Name 'CodexQuotaOrb' -ErrorAction SilentlyContinue)
 if ($running.Count -gt 0) {
     $running | Stop-Process -Force
@@ -35,17 +32,32 @@ for ($attempt = 0; $attempt -lt 10 -and -not $copied; $attempt++) {
         Start-Sleep -Milliseconds 200
     }
 }
-$runRegistry.SetValue('CodexQuotaOrb', ('"{0}" --watch' -f $destination), [Microsoft.Win32.RegistryValueKind]::String)
+$runRegistry.SetValue('CodexQuotaOrb', ('"{0}"' -f $destination), [Microsoft.Win32.RegistryValueKind]::String)
 $runRegistry.Close()
-if ($firstInstall) {
-    $settingsRegistry = [Microsoft.Win32.Registry]::CurrentUser.CreateSubKey($settingsSubKey)
-    $settingsRegistry.SetValue('HasPosition', 0, [Microsoft.Win32.RegistryValueKind]::DWord)
-    $settingsRegistry.Close()
-}
 
 if (-not $NoStart) {
-    Start-Process -FilePath $destination -ArgumentList '--watch'
+    Start-Process -FilePath $destination -WindowStyle Hidden
+
+    # Ask Windows 11 to keep this stable GUID in the visible notification area.
+    # Explorer may apply the preference on its next session; users can always
+    # drag the icon beside the clock once to apply it immediately.
+    $notifyRoot = 'HKCU:\Control Panel\NotifyIconSettings'
+    $trayGuid = '{7A799DAA-562A-4DF7-9199-1F36B84D7029}'
+    for ($attempt = 0; $attempt -lt 30; $attempt++) {
+        $entry = Get-ChildItem -LiteralPath $notifyRoot -ErrorAction SilentlyContinue |
+            Where-Object {
+                $properties = Get-ItemProperty -LiteralPath $_.PSPath -ErrorAction SilentlyContinue
+                $properties.IconGuid -eq $trayGuid
+            } |
+            Select-Object -First 1
+        if ($entry) {
+            New-ItemProperty -LiteralPath $entry.PSPath -Name 'IsPromoted' `
+                -PropertyType DWord -Value 1 -Force | Out-Null
+            break
+        }
+        Start-Sleep -Milliseconds 100
+    }
 }
 
 Write-Host "Codex Quota Orb installed to: $destination"
-Write-Host 'It waits at low overhead after sign-in and appears only while Codex is running.'
+Write-Host 'The low-overhead tray indicator stays resident and syncs only while Codex is running.'

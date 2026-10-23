@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '0.1.0'
+    [string]$Version = '0.2.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -26,7 +26,6 @@ if (Test-Path -LiteralPath $distRoot) {
 
 New-Item -ItemType Directory -Force -Path `
     (Join-Path $stageRoot 'bin'), `
-    (Join-Path $stageRoot 'docs'), `
     (Join-Path $stageRoot 'scripts') | Out-Null
 
 Copy-Item -LiteralPath $binary -Destination (Join-Path $stageRoot 'bin\CodexQuotaOrb.exe')
@@ -36,7 +35,6 @@ Copy-Item -LiteralPath (Join-Path $projectRoot 'install.cmd') -Destination $stag
 Copy-Item -LiteralPath (Join-Path $projectRoot 'uninstall.cmd') -Destination $stageRoot
 Copy-Item -LiteralPath (Join-Path $projectRoot 'README.md') -Destination $stageRoot
 Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSE') -Destination $stageRoot
-Copy-Item -LiteralPath (Join-Path $projectRoot 'docs\screenshot.png') -Destination (Join-Path $stageRoot 'docs\screenshot.png')
 
 $binaryHash = Get-FileHash -LiteralPath (Join-Path $stageRoot 'bin\CodexQuotaOrb.exe') -Algorithm SHA256
 Set-Content -LiteralPath (Join-Path $stageRoot 'SHA256SUMS.txt') `

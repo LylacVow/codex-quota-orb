@@ -1,36 +1,37 @@
 # Codex Quota Orb
 
-**Ultra-light native Windows Codex quota monitor** — a draggable floating orb for weekly usage, reset countdown, and reset credits. No Electron, WebView, Node.js, Python, or .NET runtime.
+**Ultra-light native Windows tray indicator for Codex weekly quota.** It places one percentage beside the Windows clock, stays resident at almost zero idle cost, and communicates with Codex only while Codex is running.
 
-**极致轻量的 Windows Codex 额度悬浮球**——显示周额度、重置倒计时与重置卡数量；随 Codex 自动显示，完全通过本机 Codex app-server 读取数据。
+**极致轻量的 Windows Codex 周额度托盘显示。** 常驻任务栏时钟左侧，只显示一个剩余百分比；仅在 Codex 已运行时才启动本机 app-server 同步额度。
 
-![Codex Quota Orb showing weekly remaining quota, reset countdown and reset credits](docs/screenshot.png)
+## v0.2 tray edition / 托盘精简版
 
-## Why this project / 项目特点
+- One dynamic percentage icon in the Windows notification area.
+- Weekly remaining quota only; no floating window, countdown, reset-card row, animation, transparency, dragging, snapping, or per-second repaint.
+- Hidden native Win32/C++ process with no Electron, WebView, Node.js, Python, or .NET runtime.
+- Checks for a running Codex process every 10 seconds.
+- Refreshes quota every 60 seconds **only while Codex is running**.
+- When Codex is closed, it performs no app-server communication and keeps showing the last cached percentage.
+- The icon is regenerated only when the value or Windows theme changes.
+- Right-click the percentage icon and select `关闭` to exit.
 
-- Tiny native Win32/C++ executable: about **189 KB**, statically linked.
-- Circular weekly quota gauge with remaining percentage.
-- Local countdown in `6天15时29分` format, calculated from Codex's reset timestamp.
-- Displays available rate-limit reset credits.
-- Soft translucent Windows 11-style UI following system light/dark mode and accent color.
-- Draggable and edge-snapping; starts centered on the right edge of the primary work area.
-- Right-click menu with only `置顶` (Always on top) and `关闭` (Close).
-- Starts with Windows in low-overhead watch mode and appears only while Codex is running.
-- Refreshes quota every 60 seconds; the countdown advances locally between refreshes.
+Windows controls notification-area ordering. If the icon first appears in the overflow panel, drag it beside the clock once; its stable icon identity lets Windows remember that placement.
+
+系统托盘图标的排列由 Windows 管理。如果首次出现在“隐藏的图标”区域，将它拖到时钟左侧一次即可，Windows 会记住位置。
 
 ## Quick install / 快速安装
 
-1. Download and extract `CodexQuotaOrb-v0.1.0-win-x64.zip` from Releases.
+1. Download and extract `CodexQuotaOrb-v0.2.0-win-x64.zip` from Releases.
 2. Double-click `install.cmd`.
-3. Start Codex. The orb appears automatically.
+3. The percentage icon remains resident after sign-in and synchronizes when Codex starts.
 
-下载并解压 Release 压缩包，双击 `install.cmd`。无需管理员权限，程序安装到 `%LOCALAPPDATA%\CodexQuotaOrb`，并添加当前用户的登录自启动项。
+下载并解压 Release 压缩包，双击 `install.cmd`。无需管理员权限；程序安装到 `%LOCALAPPDATA%\CodexQuotaOrb` 并加入当前用户登录自启动。
 
-Windows SmartScreen may warn about an unsigned community executable. Verify its SHA-256 from `SHA256SUMS.txt` or build it from source.
+Windows SmartScreen may warn about an unsigned community executable. Verify `SHA256SUMS.txt` or build from source if preferred.
 
 ### Portable use / 免安装运行
 
-Run `bin\CodexQuotaOrb.exe` directly. Portable mode shows the orb immediately and does not create an autostart entry.
+Run `bin\CodexQuotaOrb.exe` directly. Portable mode does not create an autostart entry.
 
 ### Uninstall / 卸载
 
@@ -42,17 +43,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\uninstall.ps1
 
 ## Privacy and data source / 隐私与数据来源
 
-Codex Quota Orb **does not read or copy `.codex/auth.json`** and does not make its own TCP/HTTP requests to OpenAI or ChatGPT.
+Codex Quota Orb **does not read or copy `.codex/auth.json`** and has no direct OpenAI/ChatGPT HTTP client.
 
-It launches the locally installed Codex executable only during refresh:
+Only after detecting `codex.exe` or `codex-code-mode-host.exe`, it briefly launches the locally installed executable in read-only mode:
 
 ```text
 codex -s read-only -a never app-server --listen stdio://
 ```
 
-It calls the read-only `account/rateLimits/read` method over standard input/output. The weekly window is selected by `windowDurationMins == 10080`; reset credits come from `rateLimitResetCredits.availableCount`.
+It calls `account/rateLimits/read` over inherited standard-input/output pipes. The weekly window is selected by `windowDurationMins == 10080`. No Codex process means no quota request.
 
-程序只与本机 Codex app-server 的标准输入输出通信，不保存登录凭据，不直接连接 OpenAI 网络接口。
+程序只在检测到 Codex 正在运行后，才通过本机 Codex app-server 的标准输入输出读取周额度；不保存登录凭据，不直接请求 OpenAI 网络接口。
 
 Protocol reference: [official Codex app-server rate-limits documentation](https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt).
 
@@ -62,15 +63,10 @@ Requirements: Windows 10/11, Visual Studio 2019 or later with **Desktop developm
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
-```
-
-The Release build uses the static MSVC runtime and produces one standalone executable at `bin\CodexQuotaOrb.exe`.
-
-To generate the distributable ZIP and checksum file:
-
-```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\package-release.ps1
 ```
+
+The Release build uses the static MSVC runtime and produces one standalone executable.
 
 ## Custom Codex path / 自定义 Codex 路径
 
@@ -84,29 +80,15 @@ The app checks `CODEX_ORB_CODEX_PATH`, then `PATH`, then common Codex Desktop in
 )
 ```
 
-## Troubleshooting / 常见问题
-
-- **The orb does not appear:** confirm Codex Desktop is running. Installed `--watch` mode hides the orb when Codex is closed.
-- **Quota stays unavailable:** run `codex --version` or set `CODEX_ORB_CODEX_PATH`.
-- **Move the orb:** drag and release; it snaps to the nearest work-area edge and remembers that position.
-- **Disable always-on-top or close:** right-click the orb and choose `置顶` or `关闭`.
-
 ## Search terms / 检索关键词
 
-Related searches: **Codex usage monitor, Codex quota monitor, Codex rate-limit widget, Codex weekly usage, Codex remaining quota, Codex reset timer, Codex reset credits, Codex desktop widget, Codex floating window, Codex floating ball, Windows Codex widget, local Codex usage display, lightweight native Win32 utility**.
+Related searches: **Codex tray icon, Codex system tray, Codex taskbar widget, Codex weekly quota, Codex remaining percentage, Codex usage monitor, Codex quota monitor, Codex rate-limit indicator, Windows Codex status, local Codex usage display, lightweight native Win32 utility**.
 
-中文检索词：**Codex 额度、Codex 周额度、Codex 剩余额度、Codex 用量监控、Codex 限额监控、Codex 重置倒计时、Codex 重置卡、Codex 悬浮窗、Codex 悬浮球、Codex 桌面小组件、Windows 11 悬浮球、本地额度显示、轻量原生工具、随 Codex 启动**。
+中文检索词：**Codex 额度、Codex 周额度、Codex 剩余百分比、Codex 用量监控、Codex 限额监控、Codex 系统托盘、Codex 任务栏、Codex 时钟左侧、Codex 底栏显示、本地额度显示、极致轻量、低性能占用、随 Codex 同步**。
 
-## Design references / 设计参考
+## Earlier floating-orb release / 早期悬浮球版本
 
-Interaction and data-boundary research referenced:
-
-- [codex-weekusage-tray](https://github.com/NotNull92/codex-weekusage-tray) (MIT)
-- [codex-usage-ball](https://github.com/jiaheng6/codex-usage-ball) (MIT)
-- [AI Quota Deck](https://github.com/JoshuaWang2211/ai-quota-deck) (MIT)
-- [Codex Minibar](https://github.com/vertopolkaLF/codex-minibar) (Apache-2.0)
-
-This repository is an independent native Win32 implementation.
+Version `v0.1.0` remains available in Releases for users who prefer the draggable circular gauge, reset countdown, and reset-credit display. Version `v0.2.0` focuses on minimum visual and runtime overhead.
 
 ## License and disclaimer
 

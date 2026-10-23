@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(CodexQuotaOrb VERSION 0.1.0 LANGUAGES CXX RC)
+project(CodexQuotaOrb VERSION 0.2.0 LANGUAGES CXX RC)
 
 add_executable(CodexQuotaOrb WIN32
     src/main.cpp
@@ -23,8 +23,6 @@ if(MSVC)
 endif()
 
 target_link_libraries(CodexQuotaOrb PRIVATE
-    gdiplus
-    dwmapi
     shell32
     advapi32
 )

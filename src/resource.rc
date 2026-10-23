@@ -2,8 +2,8 @@
 #pragma code_page(65001)
 
 1 VERSIONINFO
-FILEVERSION     0,1,0,0
-PRODUCTVERSION  0,1,0,0
+FILEVERSION     0,2,0,0
+PRODUCTVERSION  0,2,0,0
 FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
 #ifdef _DEBUG
 FILEFLAGS       VS_FF_DEBUG
@@ -19,13 +19,13 @@ BEGIN
         BLOCK "080404B0"
         BEGIN
             VALUE "CompanyName",      "CodexQuotaOrb Contributors\0"
-            VALUE "FileDescription",  "Codex 周额度悬浮球\0"
-            VALUE "FileVersion",      "0.1.0\0"
+            VALUE "FileDescription",  "Codex 周额度系统托盘显示\0"
+            VALUE "FileVersion",      "0.2.0\0"
             VALUE "InternalName",     "CodexQuotaOrb\0"
             VALUE "LegalCopyright",   "MIT License\0"
             VALUE "OriginalFilename", "CodexQuotaOrb.exe\0"
             VALUE "ProductName",      "Codex Quota Orb\0"
-            VALUE "ProductVersion",   "0.1.0\0"
+            VALUE "ProductVersion",   "0.2.0\0"
         END
     END
     BLOCK "VarFileInfo"
